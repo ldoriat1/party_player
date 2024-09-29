@@ -6,6 +6,8 @@ const path = require('path');
 const http = require('http');
 const socketIo = require('socket.io');
 const bodyParser = require('body-parser');
+const cookieParser = require('cookie-parser'); // Added for user tracking
+const { v4: uuidv4 } = require('uuid'); // Added for generating unique user IDs
 
 // Replace with your Spotify app credentials
 const client_id = '5b0c921d474a4bc89a347705a65c7502'; // Replace with your Spotify Client ID
@@ -19,6 +21,15 @@ const io = socketIo(server);
 // Middleware
 app.use(express.static(path.join(__dirname, '../frontend')));
 app.use(bodyParser.json());
+app.use(cookieParser()); // Use cookie-parser
+
+// Middleware to assign userId to guests
+app.use((req, res, next) => {
+  if (!req.cookies.userId) {
+    res.cookie('userId', uuidv4(), { httpOnly: true });
+  }
+  next();
+});
 
 // In-memory storage
 let access_token = '';
@@ -28,6 +39,7 @@ let token_timestamp = 0;
 let queue = [];
 let currentTrack = null;
 let isPlaying = false;
+let votes = {}; // { userId: { songId: vote } } - For tracking user votes
 
 // Scopes required
 const scopes = [
@@ -156,14 +168,26 @@ app.post('/api/queue', (req, res) => {
 });
 
 app.post('/api/vote', (req, res) => {
+  const userId = req.cookies.userId;
   const { songId, vote } = req.body;
-  const song = queue.find((s) => s.id === songId);
-  if (song) {
-    song.votes += vote;
-    updateQueue();
-    res.sendStatus(200);
+
+  if (!votes[userId]) {
+    votes[userId] = {};
+  }
+
+  // Check if user has already voted on this song
+  if (votes[userId][songId]) {
+    res.status(400).send('You have already voted on this song.');
   } else {
-    res.sendStatus(404);
+    const song = queue.find((s) => s.id === songId);
+    if (song) {
+      song.votes += vote;
+      votes[userId][songId] = vote;
+      updateQueue();
+      res.sendStatus(200);
+    } else {
+      res.status(404).send('Song not found.');
+    }
   }
 });
 
@@ -214,7 +238,7 @@ function getAvailableDevicesAndPlay(trackUri) {
     // Log available devices
     console.log('Available devices:', devices);
 
-    // Replace 'Your Laptop Device Name' with your actual device name
+    // Replace 'Laszlos MacBook Air' with your actual device name
     const laptopDevice = devices.find(
       (device) => device.name === 'Laszlos MacBook Air' // Replace this
     );
@@ -345,6 +369,8 @@ function getAvailableDevices(callback) {
 
 // Start the server
 const PORT = 8888;
-server.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+const HOST = '0.0.0.0'; // Listen on all network interfaces
+
+server.listen(PORT, HOST, () => {
+  console.log(`Server running on http://${HOST}:${PORT}`);
 });

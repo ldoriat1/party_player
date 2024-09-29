@@ -1,0 +1,32 @@
+/* public/style.css */
+body {
+  font-family: Arial, sans-serif;
+  margin: 20px;
+}
+
+.auth {
+  margin-bottom: 20px;
+}
+
+#search-results, #queue {
+  margin-top: 20px;
+}
+
+.song-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.song-info {
+  flex: 1;
+}
+
+.vote-buttons {
+  display: flex;
+  align-items: center;
+}
+
+.vote-buttons button {
+  margin: 0 5px;
+}

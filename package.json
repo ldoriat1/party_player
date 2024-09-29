@@ -1,0 +1,21 @@
+{
+  "name": "party-playlist",
+  "version": "1.0.0",
+  "description": "Party Playlist with Spotify Web Playback SDK",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "webpack serve --mode development"
+  },
+  "author": "Your Name",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.18.2",
+    "request": "^2.88.2"
+  },
+  "devDependencies": {
+    "webpack": "^5.64.4",
+    "webpack-cli": "^4.9.1",
+    "webpack-dev-server": "^4.7.3"
+  }
+}
